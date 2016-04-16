@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
@@ -47,9 +49,9 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver mBroadcastReceiver;
 
     private TextView mInformationTextView;
-    private static TextView weightTextView;
     private boolean isWeightReceiverRegistered;
 
+    MainFragment mainFragment;
     /**
      * The {@link ViewPager} that will host the section contents.
      */
@@ -62,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
         if (!isWeightReceiverRegistered) {
             // Register to get the actions from the Gcm service
             final IntentFilter filter = new IntentFilter(Constants.SENSOR_DATA);
-            //filter.addCategory(Constants.WEIGHT);
             registerReceiver(mReceiver, filter);
             isWeightReceiverRegistered = true;
         }
@@ -75,8 +76,6 @@ public class MainActivity extends AppCompatActivity {
             unregisterReceiver(mReceiver);
             isWeightReceiverRegistered = false;
         }
-        //LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
-        //isWeightReceiverRegistered = false;
         super.onPause();
     }
 
@@ -87,13 +86,12 @@ public class MainActivity extends AppCompatActivity {
             final String action = intent.getAction();
             LogUtils.v(LOGTAG, "Received broadcast: %s", action);
             String weight = intent.getStringExtra("weight");
-            setWeight(weight);
+            if (mainFragment != null) {
+                mainFragment.setWeight(Integer.parseInt(weight));
+            }
         }
     };
 
-    private void setWeight(String weight) {
-        weightTextView.setText(weight + "%");
-    }
 
 
     @Override
@@ -103,33 +101,24 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
+
+
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-//        mBroadcastReceiver = new BroadcastReceiver() {
-//            @Override
-//            public void onReceive(Context context, Intent intent) {
-//                final String action = intent.getAction();
-//                LogUtils.v(LOGTAG, "Received broadcast: %s", action);
-//
-//            }
-//        };
-
-        // Registering BroadcastReceiver
-        //registerReceiver();
 
         if (checkPlayServices()) {
             // Start IntentService to register this application with GCM.
             Intent intent = new Intent(this, RegistrationIntentService.class);
             startService(intent);
         }
+
       
     }
+
 
     private void registerReceiver(){
         if(!isWeightReceiverRegistered) {
@@ -199,7 +188,8 @@ public class MainActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            mainFragment = MainFragment.newInstance(position + 1);
+            return mainFragment;
         }
 
         @Override
@@ -212,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SECTION 1";
+                    return "Main";
                 case 1:
                     return "SECTION 2";
                 case 2:
@@ -222,38 +212,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
 
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
 
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            weightTextView = (TextView) rootView.findViewById(R.id.weight);
-            //textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
-        }
-    }
 }
