@@ -54,6 +54,9 @@
             android:exported="false">
         </service>
 
+        <receiver android:name=".OpenValveManager"
+            android:exported="false">
+        </receiver>
     </application>
 
 </manifest>

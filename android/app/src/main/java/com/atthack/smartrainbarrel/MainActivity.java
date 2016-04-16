@@ -1,6 +1,7 @@
 package com.atthack.smartrainbarrel;
 
 import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.design.widget.FloatingActionButton;
@@ -43,37 +44,57 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
 
-    private BroadcastReceiver mRegistrationBroadcastReceiver;
-    private ProgressBar mRegistrationProgressBar;
+    private BroadcastReceiver mBroadcastReceiver;
+
     private TextView mInformationTextView;
-    private boolean isReceiverRegistered;
+    private static TextView weightTextView;
+    private boolean isWeightReceiverRegistered;
 
     /**
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-
+    private static final String LOGTAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver();
+        if (!isWeightReceiverRegistered) {
+            // Register to get the actions from the Gcm service
+            final IntentFilter filter = new IntentFilter(Constants.SENSOR_DATA);
+            //filter.addCategory(Constants.WEIGHT);
+            registerReceiver(mReceiver, filter);
+            isWeightReceiverRegistered = true;
+        }
     }
 
     @Override
     protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-        isReceiverRegistered = false;
+
+        if (isWeightReceiverRegistered) {
+            unregisterReceiver(mReceiver);
+            isWeightReceiverRegistered = false;
+        }
+        //LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+        //isWeightReceiverRegistered = false;
         super.onPause();
     }
 
-    private void registerReceiver(){
-        if(!isReceiverRegistered) {
-            LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
-                    new IntentFilter(QuickstartPreferences.REGISTRATION_COMPLETE));
-            isReceiverRegistered = true;
+
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            LogUtils.v(LOGTAG, "Received broadcast: %s", action);
+            String weight = intent.getStringExtra("weight");
+            setWeight(weight);
         }
+    };
+
+    private void setWeight(String weight) {
+        weightTextView.setText(weight + "%");
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +111,17 @@ public class MainActivity extends AppCompatActivity {
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
+//        mBroadcastReceiver = new BroadcastReceiver() {
+//            @Override
+//            public void onReceive(Context context, Intent intent) {
+//                final String action = intent.getAction();
+//                LogUtils.v(LOGTAG, "Received broadcast: %s", action);
+//
+//            }
+//        };
 
+        // Registering BroadcastReceiver
+        //registerReceiver();
 
         if (checkPlayServices()) {
             // Start IntentService to register this application with GCM.
@@ -100,6 +131,13 @@ public class MainActivity extends AppCompatActivity {
       
     }
 
+    private void registerReceiver(){
+        if(!isWeightReceiverRegistered) {
+            LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver,
+                    new IntentFilter(Constants.SENSOR_DATA));
+            isWeightReceiverRegistered = true;
+        }
+    }
 
     /**
      * Check the device to make sure it has the Google Play Services APK. If
@@ -167,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public int getCount() {
             // Show 3 total pages.
-            return 3;
+            return 1;
         }
 
         @Override
@@ -213,8 +251,8 @@ public class MainActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+            weightTextView = (TextView) rootView.findViewById(R.id.weight);
+            //textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
             return rootView;
         }
     }
