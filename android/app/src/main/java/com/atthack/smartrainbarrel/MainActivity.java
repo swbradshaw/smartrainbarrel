@@ -67,6 +67,9 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(mReceiver, filter);
             isWeightReceiverRegistered = true;
         }
+        if (mainFragment != null) {
+            mainFragment.setupInitialWeight();
+        }
     }
 
     @Override

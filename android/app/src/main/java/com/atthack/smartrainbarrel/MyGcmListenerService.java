@@ -36,8 +36,12 @@ public class MyGcmListenerService extends GcmListenerService {
         int weight = 0;
         String sWeight = data.getString("weight");
         if (sWeight != null) {
-            // weight provided
+            // weight provided (not percent)
+
             weight = Integer.parseInt(sWeight);
+            if (weight > 100) {
+                weight = 100;
+            }
             sharedPreferences.edit().putInt(QuickstartPreferences.WEIGHT, weight).apply();
             dataChanged= true;
 

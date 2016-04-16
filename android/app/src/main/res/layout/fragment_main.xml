@@ -20,10 +20,19 @@
         android:layout_width="wrap_content"
         android:layout_height="300dp"
         android:id="@+id/imageView"
-        android:src="@drawable/rainbarrel"
+        android:src="@drawable/rainbarrel2"
+        android:layout_marginLeft="40dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/open_rain_barrel"
+        android:id="@+id/openbutton"
+        android:layout_gravity="center_horizontal" />
 
 
 </LinearLayout>
